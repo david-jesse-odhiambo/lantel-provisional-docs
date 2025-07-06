@@ -1,0 +1,282 @@
+# OpenAPI specification for the Stock Portfolio Tracker API
+openapi: 3.0.3
+
+# API metadata
+info:
+  title: Stock Portfolio Tracker API  # Name of the API
+  version: 1.0.0  # API version
+  description: REST API for a simulated stock portfolio tracker with authentication and portfolio management.
+
+# Server definitions
+servers:
+  - url: https://localhost:3000/api  # Base URL for the API
+    description: Production server
+
+# API endpoint definitions
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user account  # Brief description of the endpoint
+      tags: [Authentication]  # Grouping for documentation
+      requestBody:
+        required: true  # Request body is mandatory
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, username, password]  # Required fields for registration
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+                      username:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+        '400':
+          description: Email already in use or missing fields
+        '500':
+          description: Internal server error
+
+  /auth/login:
+    post:
+      summary: Authenticate a user and return a token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]  # Required fields for login
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string  # JWT token for authentication
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+                      username:
+                        type: string
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Internal server error
+
+  /portfolio:
+    get:
+      summary: Get portfolio summary for authenticated user
+      tags: [Portfolio]
+      security:
+        - bearerAuth: []  # Requires JWT authentication
+      responses:
+        '200':
+          description: Portfolio summary returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  portfolio:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ticker:
+                          type: string  # Stock symbol
+                        net_quantity:
+                          type: integer  # Net shares held
+                        avg_buy_price:
+                          type: number  # Average buy price
+                        current_price:
+                          type: number  # Current market price
+                        gain_loss:
+                          type: number  # Gain or loss for this stock
+                  total_value:
+                    type: number  # Total portfolio value
+                  total_gain_loss:
+                    type: number  # Total gain or loss
+        '401':
+          description: Unauthorized
+        '500':
+          description: Failed to calculate portfolio
+
+  /portfolio/buy:
+    post:
+      summary: Simulate buying shares of a stock
+      tags: [Portfolio]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ticker, quantity]  # Required fields for buy
+              properties:
+                ticker:
+                  type: string
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Buy transaction successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  transaction:
+                    type: object
+                    properties:
+                      ticker:
+                        type: string
+                      quantity:
+                        type: integer
+                      price_at_transaction:
+                        type: number  # Price at which shares were bought
+                      timestamp:
+                        type: string
+                        format: date-time
+        '400':
+          description: Invalid or missing fields
+        '404':
+          description: Stock not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal error
+
+  /portfolio/sell:
+    post:
+      summary: Simulate selling shares of a stock
+      tags: [Portfolio]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ticker, quantity]  # Required fields for sell
+              properties:
+                ticker:
+                  type: string
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Sell transaction successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  transaction:
+                    type: object
+                    properties:
+                      ticker:
+                        type: string
+                      quantity:
+                        type: integer
+                      price_at_transaction:
+                        type: number  # Price at which shares were sold
+                      timestamp:
+                        type: string
+                        format: date-time
+        '400':
+          description: Quantity exceeds holdings
+        '404':
+          description: Stock not in portfolio
+        '401':
+          description: Unauthorized
+        '500':
+          description: Error processing transaction
+
+  /stocks/{ticker}:
+    get:
+      summary: Fetch real-time stock info by ticker
+      tags: [Stocks]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ticker
+          required: true  # Path parameter is required by OpenAPI spec
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stock data returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticker:
+                    type: string
+                  company_name:
+                    type: string
+                  current_price:
+                    type: number
+                  percent_change:
+                    type: number
+                  last_updated:
+                    type: string
+                    format: date-time
+        '404':
+          description: Ticker not found
+        '429':
+          description: API rate limit hit
+        '500':
+          description: External API error
+
+# Security scheme definitions
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  # Indicates JWT is used for bearer tokens
