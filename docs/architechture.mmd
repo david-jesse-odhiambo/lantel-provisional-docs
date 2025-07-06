@@ -1,0 +1,41 @@
+%% Mermaid architecture diagram for Stock Portfolio Tracker
+%% This diagram illustrates the flow between client, server, database, and third-party API
+
+flowchart TD
+  %% Client-side (Browser)
+  subgraph Client["Browser (Client-side)"]
+    %% Handles UI and user interactions
+    A["React Components (Next.js Frontend)"]
+    %% Stores temporary/simulated trade data on client
+    L["Local State\n(Simulated Trades)"]
+  end
+
+  %% Server-side (API Backend)
+  subgraph Server["Next.js API Routes (Backend)"]
+    %% Processes API requests, business logic
+    B["REST API Handlers"]
+    %% Persistent storage for user and portfolio data
+    C["SQLite DB\n(Hosted on Fly.io)"]
+  end
+
+  %% External service for real-time stock data
+  D["Finnhub API\n(3rd Party Service)"]
+
+  %% Data flow and interactions
+  %% User actions trigger API calls
+  A -- "User Input / Fetch Request" --> B
+  %% UI updates local state for simulated trades
+  A --> L
+  %% Local state provides data to UI
+  L -- "Simulated Portfolio Data" --> A
+
+  %% API handlers interact with database
+  B -- "SQL Query / Insert" --> C
+  %% API handlers fetch stock data from Finnhub
+  B -- "HTTP Request (REST)" --> D
+  %% Finnhub returns stock data to backend
+  D -- "Stock Price JSON" --> B
+  %% Database returns portfolio/user data
+  C -- "Stored Portfolio Data" --> B
+  %% Backend sends API responses to frontend
+  B -- "API JSON Response" --> A
