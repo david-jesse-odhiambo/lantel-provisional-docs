@@ -1,0 +1,48 @@
+erDiagram
+    %% A user can have multiple transactions
+    users ||--o{ transactions : "has"
+    %% A stock can be included in multiple transactions
+    stocks ||--o{ transactions : "included_in"
+    
+    users {
+        %% Primary key, unique user identifier
+        INTEGER id PK "AUTOINCREMENT"
+        %% User's email address, must be unique
+        TEXT email "UNIQUE NOT NULL"
+        %% User's username, must be unique
+        TEXT username "UNIQUE NOT NULL"
+        %% Hashed password for authentication
+        TEXT hashed_password "NOT NULL"
+        %% Timestamp when the user was created
+        DATETIME created_at "DEFAULT CURRENT_TIMESTAMP"
+    }
+    
+    stocks {
+        %% Primary key, unique stock identifier
+        INTEGER id PK "AUTOINCREMENT"
+        %% Stock ticker symbol, must be unique
+        TEXT ticker "NOT NULL UNIQUE"
+        %% Name of the company
+        TEXT company_name
+        %% Last recorded price of the stock
+        REAL last_price
+        %% Timestamp when the stock was last updated
+        DATETIME updated_at "DEFAULT CURRENT_TIMESTAMP"
+    }
+    
+    transactions {
+        %% Primary key, unique transaction identifier
+        INTEGER id PK "AUTOINCREMENT"
+        %% Foreign key referencing users(id)
+        INTEGER user_id FK "NOT NULL"
+        %% Foreign key referencing stocks(id)
+        INTEGER stock_id FK "NOT NULL"
+        %% Type of transaction: 'buy' or 'sell'
+        TEXT transaction_type "CHECK buy/sell, NOT NULL"
+        %% Number of shares transacted, must be positive
+        INTEGER quantity "NOT NULL CHECK > 0"
+        %% Price per share at the time of transaction
+        REAL price_at_transaction "NOT NULL"
+        %% Timestamp when the transaction occurred
+        DATETIME timestamp "DEFAULT CURRENT_TIMESTAMP"
+    }
