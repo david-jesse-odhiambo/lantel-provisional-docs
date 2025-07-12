@@ -9,8 +9,6 @@ erDiagram
         INTEGER id PK "AUTOINCREMENT"
         %% User's email address, must be unique
         TEXT email "UNIQUE NOT NULL"
-        %% User's username, must be unique
-        TEXT username "UNIQUE NOT NULL"
         %% Hashed password for authentication
         TEXT hashed_password "NOT NULL"
         %% Timestamp when the user was created
